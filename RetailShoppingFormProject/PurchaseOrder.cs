@@ -6,6 +6,7 @@ namespace RetailShoppingFormProject
         private int customerId;
         private String orderDate;
         private List<OrderLine> orderLines;
+        private String processedBy;
 
         public PurchaseOrder(int orderId, int customerId, String orderDate)
         {
@@ -13,6 +14,7 @@ namespace RetailShoppingFormProject
             this.customerId = customerId;
             this.orderDate = orderDate;
             this.orderLines = new List<OrderLine>();
+            this.processedBy = "";
         }
 
         public int OrderId
@@ -31,6 +33,13 @@ namespace RetailShoppingFormProject
         {
             get { return orderDate; }
             set { orderDate = value; }
+        }
+
+        // new: username of the staff user who processed the sale (audit trail)
+        public String ProcessedBy
+        {
+            get { return processedBy; }
+            set { processedBy = value; }
         }
 
         public List<OrderLine> OrderLines
@@ -67,16 +76,31 @@ namespace RetailShoppingFormProject
             return subtotal;
         }
 
+        // new: sum of the taxable lines only; zero rated lines pay no GST and no QST
+        public double CalculateTaxableSubtotal()
+        {
+            double taxableSubtotal = 0;
+            foreach (OrderLine line in orderLines)
+            {
+                if (line.Taxable)
+                {
+                    taxableSubtotal = taxableSubtotal + line.CalculateLineTotal();
+                }
+            }
+            return taxableSubtotal;
+        }
+
+        // updated: the taxes apply to the taxable subtotal
         public double CalculateGST()
         {
             double gst_Rate = 0.05;
-            return gst_Rate * CalculateSubtotal();
+            return gst_Rate * CalculateTaxableSubtotal();
         }
 
         public double CalculateQST()
         {
             double qst_Rate = 0.09975;
-            return qst_Rate * CalculateSubtotal();
+            return qst_Rate * CalculateTaxableSubtotal();
         }
 
         public double CalculateTotal()

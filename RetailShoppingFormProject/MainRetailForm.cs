@@ -35,7 +35,7 @@ namespace RetailShoppingFormProject
 
             if (loggedUser.IsAdmin())
             {
-                accessL.Text = "Access: all the menus, including Administration (user management).";
+                accessL.Text = "Access: all the menus, including Administration (users and reports).";
             }
             else if (loggedUser.CanManageInventory())
             {
@@ -43,13 +43,13 @@ namespace RetailShoppingFormProject
             }
             else
             {
-                accessL.Text = "Access: Sales (purchases and product search) and Customers.";
+                accessL.Text = "Access: Sales (purchases, order search and product search) and Customers.";
             }
         }
 
         private void customerPurchaseToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            PurchaseForm purchaseForm = new PurchaseForm();
+            PurchaseForm purchaseForm = new PurchaseForm(loggedUser);
             purchaseForm.ShowDialog();
         }
 
@@ -57,6 +57,13 @@ namespace RetailShoppingFormProject
         {
             ProductSearchForm productSearchForm = new ProductSearchForm();
             productSearchForm.ShowDialog();
+        }
+
+        // new: Sales > Order Search, all roles
+        private void orderSearchToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OrderSearchForm orderSearchForm = new OrderSearchForm();
+            orderSearchForm.ShowDialog();
         }
 
         private void customerManagementToolStripMenuItem_Click(object sender, EventArgs e)
@@ -75,6 +82,13 @@ namespace RetailShoppingFormProject
         {
             UserForm userForm = new UserForm(loggedUser);
             userForm.ShowDialog();
+        }
+
+        // new: Administration > Administration Reports, Admin only (the menu is hidden for the other roles)
+        private void adminReportsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AdminReportForm adminReportForm = new AdminReportForm();
+            adminReportForm.ShowDialog();
         }
 
         private void logOutToolStripMenuItem_Click(object sender, EventArgs e)

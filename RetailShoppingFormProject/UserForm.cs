@@ -57,8 +57,8 @@ namespace RetailShoppingFormProject
 
             // output
             ShowUserDetails(user);
-            MessageBox.Show("User " + username + " added with ID " + userId + ".", "User Management");
             ShowUsers();
+            MessageBox.Show("User " + username + " added with ID " + userId + ".", "User Management");
         }
 
         private void searchUserB_Click(object sender, EventArgs e)
@@ -161,8 +161,8 @@ namespace RetailShoppingFormProject
             {
                 message = message + "\nThe account is unlocked.";
             }
-            MessageBox.Show(message, "User Management");
             ShowUsers();
+            MessageBox.Show(message, "User Management");
         }
 
         private void deleteUserB_Click(object sender, EventArgs e)
@@ -187,8 +187,8 @@ namespace RetailShoppingFormProject
 
             RetailDatabase.DeleteUser(existing.UserId);
             ClearFields();
-            MessageBox.Show("User " + existing.Username + " deleted.", "User Management");
             ShowUsers();
+            MessageBox.Show("User " + existing.Username + " deleted.", "User Management");
         }
 
         // Update and Delete work on the user whose ID is on the form

@@ -46,6 +46,8 @@
             accessL = new Label();
             instructionL = new Label();
             menuStrip1.SuspendLayout();
+            orderSearchToolStripMenuItem = new ToolStripMenuItem();
+            adminReportsToolStripMenuItem = new ToolStripMenuItem();
             SuspendLayout();
             // 
             // menuStrip1
@@ -60,7 +62,7 @@
             // 
             // salesToolStripMenuItem
             // 
-            salesToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { customerPurchaseToolStripMenuItem, productSearchToolStripMenuItem });
+            salesToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { customerPurchaseToolStripMenuItem, orderSearchToolStripMenuItem, productSearchToolStripMenuItem });
             salesToolStripMenuItem.Name = "salesToolStripMenuItem";
             salesToolStripMenuItem.Size = new Size(55, 24);
             salesToolStripMenuItem.Text = "Sales";
@@ -78,6 +80,13 @@
             productSearchToolStripMenuItem.Size = new Size(224, 26);
             productSearchToolStripMenuItem.Text = "Product Search";
             productSearchToolStripMenuItem.Click += productSearchToolStripMenuItem_Click;
+            // 
+            // orderSearchToolStripMenuItem
+            // 
+            orderSearchToolStripMenuItem.Name = "orderSearchToolStripMenuItem";
+            orderSearchToolStripMenuItem.Size = new Size(224, 26);
+            orderSearchToolStripMenuItem.Text = "Order Search";
+            orderSearchToolStripMenuItem.Click += orderSearchToolStripMenuItem_Click;
             // 
             // customersToolStripMenuItem
             // 
@@ -109,7 +118,7 @@
             // 
             // administrationToolStripMenuItem
             // 
-            administrationToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { userManagementToolStripMenuItem });
+            administrationToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { userManagementToolStripMenuItem, adminReportsToolStripMenuItem });
             administrationToolStripMenuItem.Name = "administrationToolStripMenuItem";
             administrationToolStripMenuItem.Size = new Size(122, 24);
             administrationToolStripMenuItem.Text = "Administration";
@@ -120,6 +129,13 @@
             userManagementToolStripMenuItem.Size = new Size(240, 26);
             userManagementToolStripMenuItem.Text = "User Management";
             userManagementToolStripMenuItem.Click += userManagementToolStripMenuItem_Click;
+            // 
+            // adminReportsToolStripMenuItem
+            // 
+            adminReportsToolStripMenuItem.Name = "adminReportsToolStripMenuItem";
+            adminReportsToolStripMenuItem.Size = new Size(240, 26);
+            adminReportsToolStripMenuItem.Text = "Administration Reports";
+            adminReportsToolStripMenuItem.Click += adminReportsToolStripMenuItem_Click;
             // 
             // sessionToolStripMenuItem
             // 
@@ -223,5 +239,7 @@
         private Label subtitleL;
         private Label accessL;
         private Label instructionL;
+        private ToolStripMenuItem orderSearchToolStripMenuItem;
+        private ToolStripMenuItem adminReportsToolStripMenuItem;
     }
 }

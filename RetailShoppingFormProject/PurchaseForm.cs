@@ -1,7 +1,8 @@
 /*  Business process 3: Managing customer purchases
-    Input(s): customerId, productCode and quantity for each line, payment method, amount paid
-    Processing: line totals, subtotal, GST (5%), QST (9.975%), total and change;
+    Input(s): customerId (or walk in customer), productCode and quantity for each line, payment method, amount paid
+    Processing: line totals, subtotal, GST (5%) and QST (9.975%) on the taxable lines only, total and change;
                 the order and its lines are stored and the stock of each product is reduced
+                the username of the staff user who processed the sale is stored with the order (audit trail)
     Output(s): the lines and totals of the order on the form, the purchase receipt in a modal form
 */
 namespace RetailShoppingFormProject
@@ -10,10 +11,13 @@ namespace RetailShoppingFormProject
     {
         PurchaseOrder currentOrder;
         Customer currentCustomer;
+        private User loggedUser;
 
-        public PurchaseForm()
+        // updated: receives the logged in user, recorded on each order
+        public PurchaseForm(User loggedUser)
         {
             InitializeComponent();
+            this.loggedUser = loggedUser;
         }
 
         private void PurchaseForm_Load(object sender, EventArgs e)
@@ -24,14 +28,17 @@ namespace RetailShoppingFormProject
         private void StartNewOrder()
         {
             currentOrder = new PurchaseOrder(RetailDataFile.NextOrderId(), 0, DateTime.Now.ToString("yyyy-MM-dd"));
+            currentOrder.ProcessedBy = loggedUser.Username;
             currentCustomer = null;
+            walkInCB.Checked = false;
             customerIdTB.Text = "";
             customerNameTB.Text = "";
             productCodeTB.Text = "";
             quantityTB.Text = "";
             amountPaidTB.Text = "";
             paymentMethodCB.SelectedIndex = 0;
-            orderInfoL.Text = "Order #" + currentOrder.OrderId + "     Date: " + currentOrder.OrderDate;
+            orderInfoL.Text = "Order #" + currentOrder.OrderId + "     Date: " + currentOrder.OrderDate
+                + "     Cashier: " + loggedUser.GetFullName();
             ShowOrder();
             customerIdTB.Focus();
         }
@@ -43,7 +50,12 @@ namespace RetailShoppingFormProject
                 MessageBox.Show("Enter the customer ID.", "Customer Purchase");
                 return;
             }
-            int customerId = int.Parse(customerIdTB.Text);
+            int customerId;
+            if (!int.TryParse(customerIdTB.Text.Trim(), out customerId))
+            {
+                MessageBox.Show("The customer ID must be a number.", "Customer Purchase");
+                return;
+            }
             Customer customer = RetailDataFile.FindCustomer(customerId);
             if (customer == null)
             {
@@ -55,6 +67,29 @@ namespace RetailShoppingFormProject
             currentCustomer = customer;
             currentOrder.CustomerId = customer.CustomerId;
             customerNameTB.Text = customer.GetFullName();
+        }
+
+        // new: a walk in customer buys without registration; the order is saved with the customer ID 0
+        private void walkInCB_CheckedChanged(object sender, EventArgs e)
+        {
+            if (walkInCB.Checked)
+            {
+                currentCustomer = Customer.CreateWalkIn();
+                currentOrder.CustomerId = currentCustomer.CustomerId;
+                customerIdTB.Text = "";
+                customerNameTB.Text = currentCustomer.GetFullName();
+                customerIdTB.Enabled = false;
+                findCustomerB.Enabled = false;
+                productCodeTB.Focus();
+            }
+            else
+            {
+                currentCustomer = null;
+                currentOrder.CustomerId = 0;
+                customerNameTB.Text = "";
+                customerIdTB.Enabled = true;
+                findCustomerB.Enabled = true;
+            }
         }
 
         private void productSearchB_Click(object sender, EventArgs e)
@@ -72,7 +107,12 @@ namespace RetailShoppingFormProject
                 MessageBox.Show("Enter the quantity.", "Customer Purchase");
                 return;
             }
-            int quantity = int.Parse(quantityTB.Text);
+            int quantity;
+            if (!int.TryParse(quantityTB.Text.Trim(), out quantity))
+            {
+                MessageBox.Show("The quantity must be a whole number.", "Customer Purchase");
+                return;
+            }
 
             // processing
             Product product = RetailDataFile.FindProduct(productCode);
@@ -94,7 +134,8 @@ namespace RetailShoppingFormProject
                     + "Already in this order: " + alreadyInOrder, "Customer Purchase");
                 return;
             }
-            currentOrder.AddLine(new OrderLine(product.ProductCode, product.ProductName, quantity, product.UnitPrice));
+            currentOrder.AddLine(new OrderLine(product.ProductCode, product.ProductName, quantity, product.UnitPrice,
+                product.Taxable));
 
             // output
             ShowOrder();
@@ -106,14 +147,16 @@ namespace RetailShoppingFormProject
         private void ShowOrder()
         {
             cartRTB.Text = "";
+            // updated: the Tax column marks the taxable lines with T
             cartRTB.AppendText("Code".PadRight(8) + "Name".PadRight(26) + "Qty".PadLeft(5)
-                + "Price".PadLeft(10) + "Total".PadLeft(11) + "\n");
+                + "Price".PadLeft(10) + "Total".PadLeft(11) + "  Tax\n");
             foreach (OrderLine line in currentOrder.OrderLines)
             {
                 cartRTB.AppendText(line.ProductCode.PadRight(8) + line.ProductName.PadRight(26)
                     + line.Quantity.ToString().PadLeft(5) + line.UnitPrice.ToString("N2").PadLeft(10)
-                    + line.CalculateLineTotal().ToString("N2").PadLeft(11) + "\n");
+                    + line.CalculateLineTotal().ToString("N2").PadLeft(11) + "  " + line.GetTaxMark() + "\n");
             }
+            cartRTB.AppendText("\nTaxable amount: $" + currentOrder.CalculateTaxableSubtotal().ToString("N2"));
             subtotalTB.Text = "$" + currentOrder.CalculateSubtotal().ToString("N2");
             gstTB.Text = "$" + currentOrder.CalculateGST().ToString("N2");
             qstTB.Text = "$" + currentOrder.CalculateQST().ToString("N2");
@@ -124,7 +167,8 @@ namespace RetailShoppingFormProject
         {
             if (currentCustomer == null)
             {
-                MessageBox.Show("Find the customer before completing the purchase.", "Customer Purchase");
+                MessageBox.Show("Find the customer, or check Walk in customer, before completing the purchase.",
+                    "Customer Purchase");
                 return;
             }
             if (currentOrder.OrderLines.Count == 0)
@@ -139,7 +183,11 @@ namespace RetailShoppingFormProject
             double amountPaid = total;
             if (amountPaidTB.Text.Trim() != "")
             {
-                amountPaid = double.Parse(amountPaidTB.Text);
+                if (!double.TryParse(amountPaidTB.Text.Trim(), out amountPaid))
+                {
+                    MessageBox.Show("The amount paid must be a number, for example 40 or 40.00.", "Customer Purchase");
+                    return;
+                }
             }
             if (amountPaid < total)
             {
@@ -153,7 +201,7 @@ namespace RetailShoppingFormProject
             RetailDataFile.SaveOrder(currentOrder, currentCustomer, payment);
 
             // output
-            ReceiptForm receiptForm = new ReceiptForm(currentOrder, currentCustomer, payment);
+            ReceiptForm receiptForm = new ReceiptForm(currentOrder, currentCustomer, payment, loggedUser.GetFullName());
             receiptForm.ShowDialog();
             StartNewOrder();
         }

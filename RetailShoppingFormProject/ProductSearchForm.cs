@@ -69,12 +69,12 @@ namespace RetailShoppingFormProject
         {
             productsRTB.Text = "";
             productsRTB.AppendText("Code".PadRight(8) + "Name".PadRight(28) + "Category".PadRight(16)
-                + "Price".PadLeft(10) + "Stock".PadLeft(8) + "   Status\n");
+                + "Price".PadLeft(10) + "Stock".PadLeft(8) + "   " + "Status".PadRight(14) + "Tax\n");
             foreach (Product p in products)
             {
                 productsRTB.AppendText(p.ProductCode.PadRight(8) + p.ProductName.PadRight(28) + p.Category.PadRight(16)
                     + ("$" + p.UnitPrice.ToString("N2")).PadLeft(10) + p.StockQty.ToString().PadLeft(8)
-                    + "   " + p.GetStockStatus() + "\n");
+                    + "   " + p.GetStockStatus().PadRight(14) + p.GetTaxLabel() + "\n");
             }
             resultCountL.Text = products.Count + " product(s) found";
             productsRTB.SelectionStart = 0;

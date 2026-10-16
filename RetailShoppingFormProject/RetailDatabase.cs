@@ -79,8 +79,7 @@ namespace RetailShoppingFormProject
             connection.Close();
             return users;
         }
-
-        // Highest userid plus one, so an id is never reused after a deletion
+                
         public static int NextUserId()
         {
             int nextId = 1;

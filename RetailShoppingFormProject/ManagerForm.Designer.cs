@@ -36,13 +36,14 @@
             productNameL = new Label();
             productNameTB = new TextBox();
             categoryL = new Label();
-            categoryTB = new TextBox();
+            categoryCB = new ComboBox();
             unitPriceL = new Label();
             unitPriceTB = new TextBox();
             stockQtyL = new Label();
             stockQtyTB = new TextBox();
             minStockL = new Label();
             minStockTB = new TextBox();
+            taxableCB = new CheckBox();
             addProductB = new Button();
             updateProductB = new Button();
             removeProductB = new Button();
@@ -131,12 +132,13 @@
             categoryL.TabIndex = 7;
             categoryL.Text = "Category:";
             // 
-            // categoryTB
+            // categoryCB
             // 
-            categoryTB.Location = new Point(190, 185);
-            categoryTB.Name = "categoryTB";
-            categoryTB.Size = new Size(220, 27);
-            categoryTB.TabIndex = 8;
+            categoryCB.FormattingEnabled = true;
+            categoryCB.Location = new Point(190, 185);
+            categoryCB.Name = "categoryCB";
+            categoryCB.Size = new Size(220, 28);
+            categoryCB.TabIndex = 8;
             // 
             // unitPriceL
             // 
@@ -186,9 +188,21 @@
             minStockTB.Size = new Size(220, 27);
             minStockTB.TabIndex = 14;
             // 
+            // taxableCB
+            // 
+            taxableCB.AutoSize = true;
+            taxableCB.Checked = true;
+            taxableCB.CheckState = CheckState.Checked;
+            taxableCB.Location = new Point(190, 345);
+            taxableCB.Name = "taxableCB";
+            taxableCB.Size = new Size(260, 24);
+            taxableCB.TabIndex = 30;
+            taxableCB.Text = "Taxable (uncheck for zero rated)";
+            taxableCB.UseVisualStyleBackColor = true;
+            // 
             // addProductB
             // 
-            addProductB.Location = new Point(30, 355);
+            addProductB.Location = new Point(30, 390);
             addProductB.Name = "addProductB";
             addProductB.Size = new Size(120, 40);
             addProductB.TabIndex = 15;
@@ -198,7 +212,7 @@
             // 
             // updateProductB
             // 
-            updateProductB.Location = new Point(160, 355);
+            updateProductB.Location = new Point(160, 390);
             updateProductB.Name = "updateProductB";
             updateProductB.Size = new Size(120, 40);
             updateProductB.TabIndex = 16;
@@ -208,7 +222,7 @@
             // 
             // removeProductB
             // 
-            removeProductB.Location = new Point(290, 355);
+            removeProductB.Location = new Point(290, 390);
             removeProductB.Name = "removeProductB";
             removeProductB.Size = new Size(120, 40);
             removeProductB.TabIndex = 17;
@@ -218,7 +232,7 @@
             // 
             // clearB
             // 
-            clearB.Location = new Point(420, 355);
+            clearB.Location = new Point(420, 390);
             clearB.Name = "clearB";
             clearB.Size = new Size(115, 40);
             clearB.TabIndex = 18;
@@ -230,7 +244,7 @@
             // 
             reportSectionL.AutoSize = true;
             reportSectionL.Font = new Font("Segoe UI", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            reportSectionL.Location = new Point(30, 420);
+            reportSectionL.Location = new Point(30, 455);
             reportSectionL.Name = "reportSectionL";
             reportSectionL.Size = new Size(300, 25);
             reportSectionL.TabIndex = 19;
@@ -239,7 +253,7 @@
             // fromDateL
             // 
             fromDateL.AutoSize = true;
-            fromDateL.Location = new Point(30, 458);
+            fromDateL.Location = new Point(30, 493);
             fromDateL.Name = "fromDateL";
             fromDateL.Size = new Size(150, 20);
             fromDateL.TabIndex = 20;
@@ -247,7 +261,7 @@
             // 
             // fromDateTB
             // 
-            fromDateTB.Location = new Point(190, 455);
+            fromDateTB.Location = new Point(190, 490);
             fromDateTB.Name = "fromDateTB";
             fromDateTB.Size = new Size(120, 27);
             fromDateTB.TabIndex = 21;
@@ -255,7 +269,7 @@
             // toDateL
             // 
             toDateL.AutoSize = true;
-            toDateL.Location = new Point(30, 498);
+            toDateL.Location = new Point(30, 533);
             toDateL.Name = "toDateL";
             toDateL.Size = new Size(150, 20);
             toDateL.TabIndex = 22;
@@ -263,14 +277,14 @@
             // 
             // toDateTB
             // 
-            toDateTB.Location = new Point(190, 495);
+            toDateTB.Location = new Point(190, 530);
             toDateTB.Name = "toDateTB";
             toDateTB.Size = new Size(120, 27);
             toDateTB.TabIndex = 23;
             // 
             // salesReportB
             // 
-            salesReportB.Location = new Point(330, 453);
+            salesReportB.Location = new Point(330, 488);
             salesReportB.Name = "salesReportB";
             salesReportB.Size = new Size(205, 70);
             salesReportB.TabIndex = 24;
@@ -280,7 +294,7 @@
             // 
             // inventoryReportB
             // 
-            inventoryReportB.Location = new Point(30, 545);
+            inventoryReportB.Location = new Point(30, 580);
             inventoryReportB.Name = "inventoryReportB";
             inventoryReportB.Size = new Size(160, 40);
             inventoryReportB.TabIndex = 25;
@@ -290,7 +304,7 @@
             // 
             // lowStockB
             // 
-            lowStockB.Location = new Point(200, 545);
+            lowStockB.Location = new Point(200, 580);
             lowStockB.Name = "lowStockB";
             lowStockB.Size = new Size(160, 40);
             lowStockB.TabIndex = 26;
@@ -304,14 +318,14 @@
             reportRTB.Location = new Point(560, 70);
             reportRTB.Name = "reportRTB";
             reportRTB.ReadOnly = true;
-            reportRTB.Size = new Size(590, 500);
+            reportRTB.Size = new Size(590, 535);
             reportRTB.TabIndex = 27;
             reportRTB.Text = "";
             reportRTB.WordWrap = false;
             // 
             // closeB
             // 
-            closeB.Location = new Point(1020, 585);
+            closeB.Location = new Point(1020, 620);
             closeB.Name = "closeB";
             closeB.Size = new Size(130, 40);
             closeB.TabIndex = 28;
@@ -323,7 +337,7 @@
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1180, 640);
+            ClientSize = new Size(1180, 675);
             Controls.Add(closeB);
             Controls.Add(reportRTB);
             Controls.Add(lowStockB);
@@ -338,13 +352,14 @@
             Controls.Add(removeProductB);
             Controls.Add(updateProductB);
             Controls.Add(addProductB);
+            Controls.Add(taxableCB);
             Controls.Add(minStockTB);
             Controls.Add(minStockL);
             Controls.Add(stockQtyTB);
             Controls.Add(stockQtyL);
             Controls.Add(unitPriceTB);
             Controls.Add(unitPriceL);
-            Controls.Add(categoryTB);
+            Controls.Add(categoryCB);
             Controls.Add(categoryL);
             Controls.Add(productNameTB);
             Controls.Add(productNameL);
@@ -373,13 +388,14 @@
         private Label productNameL;
         private TextBox productNameTB;
         private Label categoryL;
-        private TextBox categoryTB;
+        private ComboBox categoryCB;
         private Label unitPriceL;
         private TextBox unitPriceTB;
         private Label stockQtyL;
         private TextBox stockQtyTB;
         private Label minStockL;
         private TextBox minStockTB;
+        private CheckBox taxableCB;
         private Button addProductB;
         private Button updateProductB;
         private Button removeProductB;

@@ -35,6 +35,7 @@
             findCustomerB = new Button();
             customerNameL = new Label();
             customerNameTB = new TextBox();
+            walkInCB = new CheckBox();
             productCodeL = new Label();
             productCodeTB = new TextBox();
             productSearchB = new Button();
@@ -123,6 +124,17 @@
             customerNameTB.ReadOnly = true;
             customerNameTB.Size = new Size(225, 27);
             customerNameTB.TabIndex = 6;
+            // 
+            // walkInCB
+            // 
+            walkInCB.AutoSize = true;
+            walkInCB.Location = new Point(200, 155);
+            walkInCB.Name = "walkInCB";
+            walkInCB.Size = new Size(260, 24);
+            walkInCB.TabIndex = 40;
+            walkInCB.Text = "Walk in customer (not registered)";
+            walkInCB.UseVisualStyleBackColor = true;
+            walkInCB.CheckedChanged += walkInCB_CheckedChanged;
             // 
             // productCodeL
             // 
@@ -369,6 +381,7 @@
             Controls.Add(productSearchB);
             Controls.Add(productCodeTB);
             Controls.Add(productCodeL);
+            Controls.Add(walkInCB);
             Controls.Add(customerNameTB);
             Controls.Add(customerNameL);
             Controls.Add(findCustomerB);
@@ -395,6 +408,7 @@
         private Button findCustomerB;
         private Label customerNameL;
         private TextBox customerNameTB;
+        private CheckBox walkInCB;
         private Label productCodeL;
         private TextBox productCodeTB;
         private Button productSearchB;

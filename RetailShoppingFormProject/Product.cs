@@ -8,8 +8,10 @@ namespace RetailShoppingFormProject
         private double unitPrice;
         private int stockQty;
         private int minStock;
+        private bool taxable;
 
-        public Product(String productCode, String productName, String category, double unitPrice, int stockQty, int minStock)
+        public Product(String productCode, String productName, String category, double unitPrice, int stockQty, int minStock,
+            bool taxable)
         {
             this.productCode = productCode;
             this.productName = productName;
@@ -17,6 +19,7 @@ namespace RetailShoppingFormProject
             this.unitPrice = unitPrice;
             this.stockQty = stockQty;
             this.minStock = minStock;
+            this.taxable = taxable;
         }
 
         public String ProductCode
@@ -53,6 +56,22 @@ namespace RetailShoppingFormProject
         {
             get { return minStock; }
             set { minStock = value; }
+        }
+
+        // new: false for zero rated products (basic groceries), which pay neither GST nor QST
+        public bool Taxable
+        {
+            get { return taxable; }
+            set { taxable = value; }
+        }
+
+        public String GetTaxLabel()
+        {
+            if (taxable)
+            {
+                return "Taxable";
+            }
+            return "Zero rated";
         }
 
         public bool IsBelowMinimum()
