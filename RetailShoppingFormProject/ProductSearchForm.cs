@@ -1,6 +1,7 @@
 /*  Business process 2: Search for a product
     Input(s): part of the product name, category, minimum price, maximum price (each one optional)
-    Processing: every product of products.txt is compared with the filters that are filled in
+    Processing: SQL Server selects the products that match the filters that are filled in;
+                the prices are validated first (data type and range checks)
     Output(s): the list of matching products with price, stock and stock status
 */
 namespace RetailShoppingFormProject
@@ -10,51 +11,54 @@ namespace RetailShoppingFormProject
         public ProductSearchForm()
         {
             InitializeComponent();
+            RetailTheme.Apply(this);
         }
 
         private void ProductSearchForm_Load(object sender, EventArgs e)
         {
             categoryCB.Items.Add("All");
-            List<Product> products = RetailDataFile.ReadProducts();
-            foreach (Product p in products)
+            foreach (Category c in RetailDatabase.ReadCategories())
             {
-                if (!categoryCB.Items.Contains(p.Category))
-                {
-                    categoryCB.Items.Add(p.Category);
-                }
+                categoryCB.Items.Add(c.CategoryName);
             }
             categoryCB.SelectedIndex = 0;
-            ShowProducts(products);
+            ShowProducts(RetailDatabase.ReadProducts());
         }
 
         private void searchB_Click(object sender, EventArgs e)
         {
             // input
-            String nameFilter = productNameTB.Text.Trim().ToLower();
+            String nameFilter = productNameTB.Text.Trim();
             String categoryFilter = categoryCB.Text;
             double minPrice = 0;
-            double maxPrice = double.MaxValue;
+            double maxPrice = 99999999.99;
             if (minPriceTB.Text.Trim() != "")
             {
-                minPrice = double.Parse(minPriceTB.Text);
+                if (!double.TryParse(minPriceTB.Text.Trim(), out minPrice) || minPrice < 0)
+                {
+                    MessageBox.Show("The minimum price must be a number, zero or more, for example 5 or 4.99.", "Product Search");
+                    minPriceTB.Focus();
+                    return;
+                }
             }
             if (maxPriceTB.Text.Trim() != "")
             {
-                maxPrice = double.Parse(maxPriceTB.Text);
+                if (!double.TryParse(maxPriceTB.Text.Trim(), out maxPrice) || maxPrice < 0)
+                {
+                    MessageBox.Show("The maximum price must be a number, zero or more, for example 10.", "Product Search");
+                    maxPriceTB.Focus();
+                    return;
+                }
+            }
+            if (minPrice > maxPrice)
+            {
+                MessageBox.Show("The minimum price cannot be higher than the maximum price.", "Product Search");
+                minPriceTB.Focus();
+                return;
             }
 
             // processing
-            List<Product> matches = new List<Product>();
-            foreach (Product p in RetailDataFile.ReadProducts())
-            {
-                bool nameMatches = nameFilter == "" || p.ProductName.ToLower().Contains(nameFilter);
-                bool categoryMatches = categoryFilter == "All" || p.Category == categoryFilter;
-                bool priceMatches = p.UnitPrice >= minPrice && p.UnitPrice <= maxPrice;
-                if (nameMatches && categoryMatches && priceMatches)
-                {
-                    matches.Add(p);
-                }
-            }
+            List<Product> matches = RetailDatabase.SearchProducts(nameFilter, categoryFilter, minPrice, maxPrice);
 
             // output
             ShowProducts(matches);
@@ -62,7 +66,7 @@ namespace RetailShoppingFormProject
 
         private void showAllB_Click(object sender, EventArgs e)
         {
-            ShowProducts(RetailDataFile.ReadProducts());
+            ShowProducts(RetailDatabase.ReadProducts());
         }
 
         private void ShowProducts(List<Product> products)
@@ -77,6 +81,9 @@ namespace RetailShoppingFormProject
                     + "   " + p.GetStockStatus().PadRight(14) + p.GetTaxLabel() + "\n");
             }
             resultCountL.Text = products.Count + " product(s) found";
+            RetailReport.ColorWord(productsRTB, "Out of stock", RetailTheme.StatusRed);
+            RetailReport.ColorWord(productsRTB, "Low stock", RetailTheme.StatusAmber);
+            RetailReport.ColorWord(productsRTB, "In stock", RetailTheme.StatusGreen);
             productsRTB.SelectionStart = 0;
             productsRTB.ScrollToCaret();
         }

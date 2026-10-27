@@ -1,6 +1,6 @@
 /*  Business process 5: Search for an order
     Input(s): search type (order number, customer ID or order date) and its value
-    Processing: orders.txt and orderlines.txt are read; records from an earlier iteration are completed with default values
+    Processing: the order is searched in SQL Server with its customer, payment, user and lines (JOIN of five tables)
     Output(s): the detail of one order, or the list of the orders found with their total
 */
 namespace RetailShoppingFormProject
@@ -10,6 +10,7 @@ namespace RetailShoppingFormProject
         public OrderSearchForm()
         {
             InitializeComponent();
+            RetailTheme.Apply(this);
         }
 
         private void OrderSearchForm_Load(object sender, EventArgs e)
@@ -23,6 +24,9 @@ namespace RetailShoppingFormProject
         private void searchByCB_SelectedIndexChanged(object sender, EventArgs e)
         {
             valueTB.Text = "";
+            // updated: the order date is chosen in a calendar instead of typed
+            valueTB.Visible = searchByCB.SelectedIndex != 2;
+            orderDTP.Visible = searchByCB.SelectedIndex == 2;
             if (searchByCB.SelectedIndex == 0)
             {
                 hintL.Text = "Detail of one order, example: 5";
@@ -33,13 +37,19 @@ namespace RetailShoppingFormProject
             }
             else
             {
-                hintL.Text = "Orders of a day, format yyyy-MM-dd, example: 2026-10-13";
+                hintL.Text = "Orders of the day chosen in the calendar";
             }
         }
 
         private void searchB_Click(object sender, EventArgs e)
         {
             // input
+            if (searchByCB.SelectedIndex == 2)
+            {
+                ShowOrderList(RetailDatabase.FindOrdersBetween(orderDTP.Value, orderDTP.Value),
+                    "ORDERS OF " + orderDTP.Value.ToString("yyyy-MM-dd"));
+                return;
+            }
             String searchText = valueTB.Text.Trim();
             if (searchText == "")
             {
@@ -70,52 +80,28 @@ namespace RetailShoppingFormProject
                 }
                 if (customerId == Customer.WalkInId)
                 {
-                    ShowOrderList(2, customerId.ToString(), "ORDERS OF WALK IN CUSTOMERS");
+                    ShowOrderList(RetailDatabase.FindOrdersOfCustomer(customerId), "ORDERS OF WALK IN CUSTOMERS");
                 }
                 else
                 {
-                    Customer customer = RetailDataFile.FindCustomer(customerId);
+                    Customer customer = RetailDatabase.FindCustomer(customerId);
                     if (customer == null)
                     {
                         MessageBox.Show("Customer ID " + customerId + " does not exist.", "Order Search");
                         valueTB.Focus();
                         return;
                     }
-                    ShowOrderList(2, customerId.ToString(),
+                    ShowOrderList(RetailDatabase.FindOrdersOfCustomer(customerId),
                         "ORDERS OF CUSTOMER " + customerId + " (" + customer.GetFullName() + ")");
                 }
-            }
-            else
-            {
-                DateTime orderDate;
-                if (!DateTime.TryParseExact(searchText, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture,
-                    System.Globalization.DateTimeStyles.None, out orderDate))
-                {
-                    MessageBox.Show("The date must have the format yyyy-MM-dd, for example 2026-10-13.", "Order Search");
-                    valueTB.Focus();
-                    return;
-                }
-                ShowOrderList(1, searchText, "ORDERS OF " + searchText);
             }
         }
 
         private void ShowOrder(int orderId)
         {
-            // processing: the order header is searched with a found flag
-            List<String[]> orders = RetailDataFile.ReadOrderRecords();
-            bool found = false;
-            String[] order = new String[12];
-            int index = 0;
-            while (index < orders.Count && !found)
-            {
-                if (orders[index][0] == orderId.ToString())
-                {
-                    found = true;
-                    order = orders[index];
-                }
-                index = index + 1;
-            }
-            if (!found)
+            // processing: the order header is searched by its primary key
+            String[] order = RetailDatabase.FindOrderRecord(orderId);
+            if (order == null)
             {
                 resultRTB.Text = "";
                 resultCountL.Text = "";
@@ -123,7 +109,7 @@ namespace RetailShoppingFormProject
                 return;
             }
 
-            List<String[]> lines = RetailDataFile.ReadOrderLineRecords(orderId);
+            List<String[]> lines = RetailDatabase.ReadOrderLineRecords(orderId);
             double taxableAmount = 0;
             foreach (String[] line in lines)
             {
@@ -158,7 +144,7 @@ namespace RetailShoppingFormProject
                 {
                     taxMark = "T";
                 }
-                resultRTB.AppendText(RetailDataFile.Fit(line[2], 25).PadRight(26) + line[3].PadLeft(5)
+                resultRTB.AppendText(RetailReport.Fit(line[2], 25).PadRight(26) + line[3].PadLeft(5)
                     + double.Parse(line[4]).ToString("N2").PadLeft(10)
                     + double.Parse(line[5]).ToString("N2").PadLeft(11) + " " + taxMark + "\n");
             }
@@ -175,24 +161,20 @@ namespace RetailShoppingFormProject
             resultCountL.Text = lines.Count + " line(s) in the order";
         }
 
-        // fieldIndex: 1 = order date, 2 = customer ID
-        private void ShowOrderList(int fieldIndex, String wanted, String title)
+        // updated: the orders arrive already selected by SQL Server (WHERE on the customer or the date)
+        private void ShowOrderList(List<String[]> orders, String title)
         {
             // processing
-            List<String[]> orders = RetailDataFile.ReadOrderRecords();
             int orderCount = 0;
             double totalSum = 0;
             String rows = "";
             foreach (String[] order in orders)
             {
-                if (order[fieldIndex] == wanted)
-                {
-                    rows = rows + order[0].PadRight(7) + order[1].PadRight(12) + RetailDataFile.Fit(order[3], 21).PadRight(22)
-                        + order[8].PadRight(13) + double.Parse(order[7]).ToString("N2").PadLeft(11)
-                        + "  " + order[11] + "\n";
-                    orderCount = orderCount + 1;
-                    totalSum = totalSum + double.Parse(order[7]);
-                }
+                rows = rows + order[0].PadRight(7) + order[1].PadRight(12) + RetailReport.Fit(order[3], 21).PadRight(22)
+                    + order[8].PadRight(13) + double.Parse(order[7]).ToString("N2").PadLeft(11)
+                    + "  " + order[11] + "\n";
+                orderCount = orderCount + 1;
+                totalSum = totalSum + double.Parse(order[7]);
             }
 
             // output

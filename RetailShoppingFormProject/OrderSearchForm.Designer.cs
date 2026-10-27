@@ -34,6 +34,7 @@
             valueL = new Label();
             valueTB = new TextBox();
             hintL = new Label();
+            orderDTP = new DateTimePicker();
             searchB = new Button();
             clearB = new Button();
             resultCountL = new Label();
@@ -86,6 +87,16 @@
             valueTB.Name = "valueTB";
             valueTB.Size = new Size(220, 27);
             valueTB.TabIndex = 4;
+            //
+            // orderDTP
+            //
+            orderDTP.CustomFormat = "yyyy-MM-dd";
+            orderDTP.Format = DateTimePickerFormat.Custom;
+            orderDTP.Location = new Point(220, 125);
+            orderDTP.Name = "orderDTP";
+            orderDTP.Size = new Size(220, 27);
+            orderDTP.TabIndex = 4;
+            orderDTP.Visible = false;
             //
             // hintL
             //
@@ -159,6 +170,7 @@
             Controls.Add(clearB);
             Controls.Add(searchB);
             Controls.Add(hintL);
+            Controls.Add(orderDTP);
             Controls.Add(valueTB);
             Controls.Add(valueL);
             Controls.Add(searchByCB);
@@ -182,6 +194,7 @@
         private Label valueL;
         private TextBox valueTB;
         private Label hintL;
+        private DateTimePicker orderDTP;
         private Button searchB;
         private Button clearB;
         private Label resultCountL;

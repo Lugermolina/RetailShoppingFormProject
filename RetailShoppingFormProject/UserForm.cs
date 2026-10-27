@@ -1,21 +1,28 @@
-/*  User management, iteration 2 (Admin only)
+/*  User management, iteration 3 (Admin only)
     Input(s): user ID or username, first name, last name, role, password, account locked
     Processing: Add, Search, Update and Delete on the Users table of the SQL Server database;
                 the password is stored as a hash; unlocking an account resets its failed attempts
     Output(s): the details of the user on the form and the list of all the users
     Rules: the username is unique; the password has at least 6 characters; the logged in administrator
-           cannot lock, delete or change the role of their own account, so one administrator always remains
+           cannot lock, delete or change the role of their own account, so one administrator always remains;
+           a user who processed orders cannot be deleted (audit trail), the account is locked instead
 */
 namespace RetailShoppingFormProject
 {
     public partial class UserForm : Form
     {
+        private ToolTip tips = new ToolTip();
+
         private User loggedUser;
         private bool passwordVisible = false;
 
         public UserForm(User loggedUser)
         {
             InitializeComponent();
+            RetailTheme.Apply(this);
+            // new: help text shown when the mouse stays over a control
+            tips.SetToolTip(lockedCB, "Uncheck to unlock the account; its failed attempts go back to 0");
+            tips.SetToolTip(showPasswordPB, "Shows or hides the password");
             this.loggedUser = loggedUser;
         }
 
@@ -178,6 +185,15 @@ namespace RetailShoppingFormProject
                 return;
             }
 
+            // new: the orders keep the user who processed them (foreign key of the Orders table)
+            int orderCount = RetailDatabase.CountOrdersOfUser(existing.UserId);
+            if (orderCount > 0)
+            {
+                MessageBox.Show(existing.Username + " processed " + orderCount + " order(s) and cannot be deleted:\n"
+                    + "the audit trail of the sales must stay complete. Lock the account instead.", "User Management");
+                return;
+            }
+
             DialogResult answer = MessageBox.Show("Delete the user " + existing.Username + " ("
                 + existing.GetFullName() + ")?", "User Management", MessageBoxButtons.YesNo);
             if (answer != DialogResult.Yes)
@@ -241,6 +257,7 @@ namespace RetailShoppingFormProject
                     + u.FailedAttempts + "\n");
             }
             usersRTB.AppendText("\nTotal users: " + users.Count);
+            RetailReport.ColorWord(usersRTB, "Locked", RetailTheme.StatusRed);
         }
 
         private void ClearFields()

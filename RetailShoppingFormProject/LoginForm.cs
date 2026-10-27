@@ -11,11 +11,16 @@ namespace RetailShoppingFormProject
 {
     public partial class LoginForm : Form
     {
+        private ToolTip tips = new ToolTip();
+
         private bool passwordVisible = false;
 
         public LoginForm()
         {
             InitializeComponent();
+            RetailTheme.Apply(this);
+            // new: help text shown when the mouse stays over a control
+            tips.SetToolTip(showPasswordPB, "Shows or hides the password");
         }
 
         private void loginB_Click(object sender, EventArgs e)

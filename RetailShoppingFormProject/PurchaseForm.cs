@@ -1,7 +1,8 @@
 /*  Business process 3: Managing customer purchases
     Input(s): customerId (or walk in customer), productCode and quantity for each line, payment method, amount paid
     Processing: line totals, subtotal, GST (5%) and QST (9.975%) on the taxable lines only, total and change;
-                the order and its lines are stored and the stock of each product is reduced
+                the order, its payment and its lines are stored in SQL Server in one transaction
+                and the stock of each product is reduced
                 the username of the staff user who processed the sale is stored with the order (audit trail)
     Output(s): the lines and totals of the order on the form, the purchase receipt in a modal form
 */
@@ -9,6 +10,8 @@ namespace RetailShoppingFormProject
 {
     public partial class PurchaseForm : Form
     {
+        private ToolTip tips = new ToolTip();
+
         PurchaseOrder currentOrder;
         Customer currentCustomer;
         private User loggedUser;
@@ -17,6 +20,12 @@ namespace RetailShoppingFormProject
         public PurchaseForm(User loggedUser)
         {
             InitializeComponent();
+            RetailTheme.Apply(this);
+            // new: help text shown when the mouse stays over a control
+            tips.SetToolTip(walkInCB, "Sale to a customer who is not registered, saved with the customer ID 0");
+            tips.SetToolTip(productSearchB, "Opens the product search to find a product code");
+            tips.SetToolTip(amountPaidTB, "Leave empty when the customer pays the exact amount");
+            tips.SetToolTip(completePurchaseB, "Saves the order, its payment and its lines, then shows the receipt");
             this.loggedUser = loggedUser;
         }
 
@@ -27,7 +36,7 @@ namespace RetailShoppingFormProject
 
         private void StartNewOrder()
         {
-            currentOrder = new PurchaseOrder(RetailDataFile.NextOrderId(), 0, DateTime.Now.ToString("yyyy-MM-dd"));
+            currentOrder = new PurchaseOrder(RetailDatabase.NextOrderId(), 0, DateTime.Now.ToString("yyyy-MM-dd"));
             currentOrder.ProcessedBy = loggedUser.Username;
             currentCustomer = null;
             walkInCB.Checked = false;
@@ -56,7 +65,7 @@ namespace RetailShoppingFormProject
                 MessageBox.Show("The customer ID must be a number.", "Customer Purchase");
                 return;
             }
-            Customer customer = RetailDataFile.FindCustomer(customerId);
+            Customer customer = RetailDatabase.FindCustomer(customerId);
             if (customer == null)
             {
                 MessageBox.Show("No customer is registered with ID " + customerId + ".", "Customer Purchase");
@@ -115,7 +124,7 @@ namespace RetailShoppingFormProject
             }
 
             // processing
-            Product product = RetailDataFile.FindProduct(productCode);
+            Product product = RetailDatabase.FindProduct(productCode);
             if (product == null)
             {
                 MessageBox.Show("No product has the code " + productCode + ".", "Customer Purchase");
@@ -198,7 +207,16 @@ namespace RetailShoppingFormProject
 
             // processing
             Payment payment = new Payment(currentOrder.OrderId, method, amountPaid);
-            RetailDataFile.SaveOrder(currentOrder, currentCustomer, payment);
+            // updated: nothing is saved when the stock changed at another register since a line was added
+            try
+            {
+                RetailDatabase.SaveOrder(currentOrder, currentCustomer, payment, loggedUser.UserId);
+            }
+            catch (InvalidOperationException ex)
+            {
+                MessageBox.Show(ex.Message + "\nThe order was not saved: start a new order.", "Customer Purchase");
+                return;
+            }
 
             // output
             ReceiptForm receiptForm = new ReceiptForm(currentOrder, currentCustomer, payment, loggedUser.GetFullName());

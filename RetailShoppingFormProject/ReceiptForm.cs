@@ -6,6 +6,7 @@ namespace RetailShoppingFormProject
         public ReceiptForm(PurchaseOrder order, Customer customer, Payment payment, String servedBy)
         {
             InitializeComponent();
+            RetailTheme.Apply(this);
 
             // processing
             double subtotal = order.CalculateSubtotal();

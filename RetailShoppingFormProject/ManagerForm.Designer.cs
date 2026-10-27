@@ -49,13 +49,10 @@
             removeProductB = new Button();
             clearB = new Button();
             reportSectionL = new Label();
-            fromDateL = new Label();
-            fromDateTB = new TextBox();
-            toDateL = new Label();
-            toDateTB = new TextBox();
-            salesReportB = new Button();
             inventoryReportB = new Button();
             lowStockB = new Button();
+            saveReportB = new Button();
+            salesHintL = new Label();
             reportRTB = new RichTextBox();
             closeB = new Button();
             SuspendLayout();
@@ -69,7 +66,7 @@
             titleL.Name = "titleL";
             titleL.Size = new Size(500, 38);
             titleL.TabIndex = 0;
-            titleL.Text = "Inventory and Sales Follow-up";
+            titleL.Text = "Products and Inventory";
             // 
             // productSectionL
             // 
@@ -248,87 +245,66 @@
             reportSectionL.Name = "reportSectionL";
             reportSectionL.Size = new Size(300, 25);
             reportSectionL.TabIndex = 19;
-            reportSectionL.Text = "Reports";
-            // 
-            // fromDateL
-            // 
-            fromDateL.AutoSize = true;
-            fromDateL.Location = new Point(30, 493);
-            fromDateL.Name = "fromDateL";
-            fromDateL.Size = new Size(150, 20);
-            fromDateL.TabIndex = 20;
-            fromDateL.Text = "From (yyyy-MM-dd):";
-            // 
-            // fromDateTB
-            // 
-            fromDateTB.Location = new Point(190, 490);
-            fromDateTB.Name = "fromDateTB";
-            fromDateTB.Size = new Size(120, 27);
-            fromDateTB.TabIndex = 21;
-            // 
-            // toDateL
-            // 
-            toDateL.AutoSize = true;
-            toDateL.Location = new Point(30, 533);
-            toDateL.Name = "toDateL";
-            toDateL.Size = new Size(150, 20);
-            toDateL.TabIndex = 22;
-            toDateL.Text = "To (yyyy-MM-dd):";
-            // 
-            // toDateTB
-            // 
-            toDateTB.Location = new Point(190, 530);
-            toDateTB.Name = "toDateTB";
-            toDateTB.Size = new Size(120, 27);
-            toDateTB.TabIndex = 23;
-            // 
-            // salesReportB
-            // 
-            salesReportB.Location = new Point(330, 488);
-            salesReportB.Name = "salesReportB";
-            salesReportB.Size = new Size(205, 70);
-            salesReportB.TabIndex = 24;
-            salesReportB.Text = "Sales Report by Period";
-            salesReportB.UseVisualStyleBackColor = true;
-            salesReportB.Click += salesReportB_Click;
+            reportSectionL.Text = "Inventory reports";
             // 
             // inventoryReportB
             // 
-            inventoryReportB.Location = new Point(30, 580);
+            inventoryReportB.Location = new Point(30, 492);
             inventoryReportB.Name = "inventoryReportB";
             inventoryReportB.Size = new Size(160, 40);
             inventoryReportB.TabIndex = 25;
-            inventoryReportB.Text = "Inventory Report";
+            inventoryReportB.Text = "&Inventory Report";
             inventoryReportB.UseVisualStyleBackColor = true;
             inventoryReportB.Click += inventoryReportB_Click;
             // 
             // lowStockB
             // 
-            lowStockB.Location = new Point(200, 580);
+            lowStockB.Location = new Point(200, 492);
             lowStockB.Name = "lowStockB";
             lowStockB.Size = new Size(160, 40);
             lowStockB.TabIndex = 26;
-            lowStockB.Text = "Low Stock List";
+            lowStockB.Text = "&Low Stock List";
             lowStockB.UseVisualStyleBackColor = true;
             lowStockB.Click += lowStockB_Click;
+            // 
+            // saveReportB
+            // 
+            saveReportB.Location = new Point(370, 492);
+            saveReportB.Name = "saveReportB";
+            saveReportB.Size = new Size(165, 40);
+            saveReportB.TabIndex = 27;
+            saveReportB.Text = "Sa&ve to File";
+            saveReportB.UseVisualStyleBackColor = true;
+            saveReportB.Click += saveReportB_Click;
+            // 
+            // salesHintL
+            // 
+            salesHintL.AutoSize = true;
+            salesHintL.Font = new Font("Segoe UI", 9F, FontStyle.Italic, GraphicsUnit.Point, 0);
+            salesHintL.Location = new Point(30, 545);
+            salesHintL.Name = "salesHintL";
+            salesHintL.Size = new Size(420, 20);
+            salesHintL.TabIndex = 28;
+            salesHintL.Text = "Sales reports and charts: menu Inventory > Sales Reports.";
             // 
             // reportRTB
             // 
             reportRTB.Font = new Font("Consolas", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            reportRTB.Location = new Point(560, 70);
+            reportRTB.Location = new Point(550, 70);
             reportRTB.Name = "reportRTB";
             reportRTB.ReadOnly = true;
-            reportRTB.Size = new Size(590, 535);
-            reportRTB.TabIndex = 27;
+            reportRTB.Size = new Size(600, 535);
+            reportRTB.TabIndex = 29;
             reportRTB.Text = "";
             reportRTB.WordWrap = false;
             // 
             // closeB
             // 
+            closeB.DialogResult = DialogResult.Cancel;
             closeB.Location = new Point(1020, 620);
             closeB.Name = "closeB";
             closeB.Size = new Size(130, 40);
-            closeB.TabIndex = 28;
+            closeB.TabIndex = 30;
             closeB.Text = "Close";
             closeB.UseVisualStyleBackColor = true;
             closeB.Click += closeB_Click;
@@ -337,16 +313,14 @@
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
+            CancelButton = closeB;
             ClientSize = new Size(1180, 675);
             Controls.Add(closeB);
             Controls.Add(reportRTB);
+            Controls.Add(salesHintL);
+            Controls.Add(saveReportB);
             Controls.Add(lowStockB);
             Controls.Add(inventoryReportB);
-            Controls.Add(salesReportB);
-            Controls.Add(toDateTB);
-            Controls.Add(toDateL);
-            Controls.Add(fromDateTB);
-            Controls.Add(fromDateL);
             Controls.Add(reportSectionL);
             Controls.Add(clearB);
             Controls.Add(removeProductB);
@@ -372,7 +346,7 @@
             MaximizeBox = false;
             Name = "ManagerForm";
             StartPosition = FormStartPosition.CenterParent;
-            Text = "Inventory and Sales Follow-up";
+            Text = "Products and Inventory";
             Load += ManagerForm_Load;
             ResumeLayout(false);
             PerformLayout();
@@ -401,13 +375,10 @@
         private Button removeProductB;
         private Button clearB;
         private Label reportSectionL;
-        private Label fromDateL;
-        private TextBox fromDateTB;
-        private Label toDateL;
-        private TextBox toDateTB;
-        private Button salesReportB;
         private Button inventoryReportB;
         private Button lowStockB;
+        private Button saveReportB;
+        private Label salesHintL;
         private RichTextBox reportRTB;
         private Button closeB;
     }

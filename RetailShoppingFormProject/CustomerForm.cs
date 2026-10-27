@@ -1,6 +1,6 @@
-/*  Business process 1: Customer management, iteration 2
+/*  Business process 1: Customer management, iteration 3
     Input(s): customer ID, first name, last name, address, phone, email
-    Processing: Add, Search, Update and Delete on customers.txt
+    Processing: Add, Search, Update and Delete on the Customers table of SQL Server
                 the fields are validated: names with letters only, phone with 10 digits, email with a valid form;
                 an email cannot belong to two customers; a phone can be shared by a household after a confirmation,
                 but the same name with the same phone is refused as a duplicate;
@@ -12,41 +12,47 @@ namespace RetailShoppingFormProject
 {
     public partial class CustomerForm : Form
     {
+        private ToolTip tips = new ToolTip();
+
         public CustomerForm()
         {
             InitializeComponent();
+            RetailTheme.Apply(this);
+            // new: help text shown when the mouse stays over a control
+            tips.SetToolTip(searchCustomerB, "Searches by ID first, else by phone, else by last name");
+            tips.SetToolTip(phoneTB, "10 digits; a phone can be shared by the members of a household");
+            tips.SetToolTip(emailTB, "Optional, for example name@example.com; one customer per email");
         }
 
         private void CustomerForm_Load(object sender, EventArgs e)
         {
-            ShowCustomers(RetailDataFile.ReadCustomers(), "Total customers: ");
+            ShowCustomers(RetailDatabase.ReadCustomers(), "Total customers: ");
         }
 
         private void addCustomerB_Click(object sender, EventArgs e)
         {
             // input and processing
-            int customerId = RetailDataFile.NextCustomerId();
+            int customerId = RetailDatabase.NextCustomerId();
             Customer customer = ReadCustomerFields(customerId);
             if (customer == null)
             {
                 return;
             }
-            RetailDataFile.AppendCustomer(customer);
+            RetailDatabase.AddCustomer(customer);
 
             // output
             ShowCustomerDetails(customer);
-            ShowCustomers(RetailDataFile.ReadCustomers(), "Total customers: ");
+            ShowCustomers(RetailDatabase.ReadCustomers(), "Total customers: ");
             MessageBox.Show("Customer " + customer.GetFullName() + " added with ID " + customerId + ".",
                 "Customer Management");
         }
 
-        // new: the ID is used first, then the phone, then the last name; a last name can match several customers
+        // The ID is used first, then the phone, then the last name; a last name can match several customers
         private void searchCustomerB_Click(object sender, EventArgs e)
         {
             String idText = customerIdTB.Text.Trim();
             String phoneText = phoneTB.Text.Trim();
             String lastName = lastNameTB.Text.Trim();
-            List<Customer> customers = RetailDataFile.ReadCustomers();
 
             if (idText != "")
             {
@@ -56,7 +62,7 @@ namespace RetailShoppingFormProject
                     MessageBox.Show("The customer ID must be a number.", "Customer Management");
                     return;
                 }
-                Customer customer = RetailDataFile.FindCustomer(customerId);
+                Customer customer = RetailDatabase.FindCustomer(customerId);
                 if (customer == null)
                 {
                     MessageBox.Show("No customer has the ID " + customerId + ".", "Customer Management");
@@ -68,27 +74,17 @@ namespace RetailShoppingFormProject
             {
                 // A phone can be shared by a household, so it can match several customers
                 String phone = Customer.FormatPhone(phoneText);
-                List<Customer> matches = new List<Customer>();
-                foreach (Customer c in customers)
+                if (phone == "")
                 {
-                    if (phone != "" && c.Phone == phone)
-                    {
-                        matches.Add(c);
-                    }
+                    MessageBox.Show("The phone must have 10 digits, for example 514-555-0123.", "Customer Management");
+                    phoneTB.Focus();
+                    return;
                 }
-                ShowMatches(matches, "the phone " + phoneText);
+                ShowMatches(RetailDatabase.FindCustomersByPhone(phone), "the phone " + phone);
             }
             else if (lastName != "")
             {
-                List<Customer> matches = new List<Customer>();
-                foreach (Customer c in customers)
-                {
-                    if (c.LastName.ToUpper() == lastName.ToUpper())
-                    {
-                        matches.Add(c);
-                    }
-                }
-                ShowMatches(matches, "the last name " + lastName);
+                ShowMatches(RetailDatabase.FindCustomersByLastName(lastName), "the last name " + lastName);
             }
             else
             {
@@ -115,7 +111,7 @@ namespace RetailShoppingFormProject
             }
         }
 
-        // new: rewrites customers.txt with the changed customer
+        // updated: one UPDATE of the customer row instead of rewriting the whole text file
         private void updateCustomerB_Click(object sender, EventArgs e)
         {
             Customer existing = FindCustomerOnForm();
@@ -130,23 +126,15 @@ namespace RetailShoppingFormProject
             {
                 return;
             }
-            List<Customer> customers = RetailDataFile.ReadCustomers();
-            for (int i = 0; i < customers.Count; i++)
-            {
-                if (customers[i].CustomerId == updated.CustomerId)
-                {
-                    customers[i] = updated;
-                }
-            }
-            RetailDataFile.SaveCustomers(customers);
+            RetailDatabase.UpdateCustomer(updated);
 
             // output
             ShowCustomerDetails(updated);
-            ShowCustomers(customers, "Total customers: ");
+            ShowCustomers(RetailDatabase.ReadCustomers(), "Total customers: ");
             MessageBox.Show("Customer " + updated.GetFullName() + " updated.", "Customer Management");
         }
 
-        // new: refused when the customer has orders
+        // Refused when the customer has orders (foreign key of the Orders table)
         private void deleteCustomerB_Click(object sender, EventArgs e)
         {
             Customer existing = FindCustomerOnForm();
@@ -155,7 +143,7 @@ namespace RetailShoppingFormProject
                 return;
             }
 
-            int orderCount = RetailDataFile.CountOrdersOfCustomer(existing.CustomerId);
+            int orderCount = RetailDatabase.CountOrdersOfCustomer(existing.CustomerId);
             if (orderCount > 0)
             {
                 MessageBox.Show(existing.GetFullName() + " has " + orderCount + " order(s) and cannot be deleted:\n"
@@ -171,23 +159,14 @@ namespace RetailShoppingFormProject
                 return;
             }
 
-            List<Customer> customers = RetailDataFile.ReadCustomers();
-            List<Customer> remaining = new List<Customer>();
-            foreach (Customer c in customers)
-            {
-                if (c.CustomerId != existing.CustomerId)
-                {
-                    remaining.Add(c);
-                }
-            }
-            RetailDataFile.SaveCustomers(remaining);
+            RetailDatabase.DeleteCustomer(existing.CustomerId);
 
             ClearFields();
-            ShowCustomers(remaining, "Total customers: ");
+            ShowCustomers(RetailDatabase.ReadCustomers(), "Total customers: ");
             MessageBox.Show("Customer " + existing.GetFullName() + " deleted.", "Customer Management");
         }
 
-        // new: validates the fields and builds the customer; shows the first problem found and returns null
+        // Validates the fields and builds the customer; shows the first problem found and returns null
         private Customer ReadCustomerFields(int customerId)
         {
             String firstName = CleanText(firstNameTB.Text);
@@ -222,7 +201,7 @@ namespace RetailShoppingFormProject
 
             // The same name with the same phone is the same person; another name with the phone is a household
             String sharedWith = "";
-            foreach (Customer c in RetailDataFile.ReadCustomers())
+            foreach (Customer c in RetailDatabase.ReadCustomers())
             {
                 if (c.CustomerId != customerId && c.Phone == phone)
                 {
@@ -254,7 +233,7 @@ namespace RetailShoppingFormProject
             return new Customer(customerId, firstName, lastName, address, phone, email);
         }
 
-        // A tab would split the record in the text file, so it is replaced by a space
+        // A tab would break the column alignment of the lists and reports, so it is replaced by a space
         private String CleanText(String text)
         {
             return text.Replace("\t", " ").Trim();
@@ -274,7 +253,7 @@ namespace RetailShoppingFormProject
                 MessageBox.Show("The customer ID must be a number.", "Customer Management");
                 return null;
             }
-            Customer customer = RetailDataFile.FindCustomer(customerId);
+            Customer customer = RetailDatabase.FindCustomer(customerId);
             if (customer == null)
             {
                 MessageBox.Show("No customer has the ID " + customerId + ".", "Customer Management");
@@ -319,7 +298,7 @@ namespace RetailShoppingFormProject
         private void clearB_Click(object sender, EventArgs e)
         {
             ClearFields();
-            ShowCustomers(RetailDataFile.ReadCustomers(), "Total customers: ");
+            ShowCustomers(RetailDatabase.ReadCustomers(), "Total customers: ");
         }
 
         private void closeB_Click(object sender, EventArgs e)

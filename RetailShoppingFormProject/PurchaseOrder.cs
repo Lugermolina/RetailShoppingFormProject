@@ -47,8 +47,18 @@ namespace RetailShoppingFormProject
             get { return orderLines; }
         }
 
+        // updated: a product already in the order gets the added quantity on its line, so each product
+        // appears once per order, as the primary key (orderid, productcode) of OrderLines requires
         public void AddLine(OrderLine line)
         {
+            foreach (OrderLine existing in orderLines)
+            {
+                if (existing.ProductCode == line.ProductCode)
+                {
+                    existing.Quantity = existing.Quantity + line.Quantity;
+                    return;
+                }
+            }
             orderLines.Add(line);
         }
 

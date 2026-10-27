@@ -5,6 +5,11 @@ obj/
 *.user
 *.suo
 
+*Shots/
+Screenshots/
+System Pictures/
+System Lectures/
+
 # Documents
 *.docx
 *.pptx

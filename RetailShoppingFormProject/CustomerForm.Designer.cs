@@ -39,7 +39,7 @@
             addressL = new Label();
             addressTB = new TextBox();
             phoneL = new Label();
-            phoneTB = new TextBox();
+            phoneTB = new MaskedTextBox();
             phoneHintL = new Label();
             emailL = new Label();
             emailTB = new TextBox();
@@ -151,9 +151,11 @@
             // phoneTB
             // 
             phoneTB.Location = new Point(180, 275);
+            phoneTB.Mask = "000-000-0000";
             phoneTB.Name = "phoneTB";
             phoneTB.Size = new Size(330, 27);
             phoneTB.TabIndex = 11;
+            phoneTB.TextMaskFormat = MaskFormat.ExcludePromptAndLiterals;
             // 
             // phoneHintL
             // 
@@ -324,7 +326,7 @@
         private Label addressL;
         private TextBox addressTB;
         private Label phoneL;
-        private TextBox phoneTB;
+        private MaskedTextBox phoneTB;
         private Label phoneHintL;
         private Label emailL;
         private TextBox emailTB;
